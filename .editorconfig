@@ -1,0 +1,17 @@
+root = true
+
+[*.cs]
+# Establecer longitud máxima de línea
+max_line_length = 100 # Longitud máxima de línea
+max_line_length_for_type_members = 100 # Longitud máxima de línea para miembros de tipo
+
+# Configuración de indentación
+indent_style = space
+indent_size = 2
+tab_width = 2
+
+# Insertar nueva línea al final del archivo
+insert_final_newline = true
+
+# Forzar llaves en nuevas líneas
+brace_style = next_line
