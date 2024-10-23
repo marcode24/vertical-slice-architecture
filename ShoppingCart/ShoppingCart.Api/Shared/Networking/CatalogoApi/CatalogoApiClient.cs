@@ -1,17 +1,38 @@
+using Polly;
 using ShoppingCart.Api.Shared.Domain.Models;
 
 namespace ShoppingCart.Api.Shared.Networking.CatalogoApi;
 
-public sealed class CatalogoApiClient
+public sealed class CatalogoApiClient(
+  CatalogoApiService catalogoApiService,
+  ILoggerFactory loggerFactory)
   : ICatalogoApiClient
 {
+
+  private readonly CatalogoApiService _catalogoApiService = catalogoApiService;
+  private readonly ILoggerFactory _loggerFactory = loggerFactory;
+
   public Task<Catalogo> GetProductByCodeAsync(string code, CancellationToken cancellationToken)
   {
     throw new NotImplementedException();
   }
 
-  public Task<IEnumerable<Catalogo>> GetProductsAsync(CancellationToken cancellationToken)
+  public async Task<IEnumerable<Catalogo>> GetProductsAsync(CancellationToken cancellationToken)
   {
-    throw new NotImplementedException();
+    var logger = _loggerFactory.CreateLogger("RetryLog");
+    var policy = Policy.Handle<ApplicationException>()
+      .WaitAndRetryAsync(
+        3,
+        retryAttempt =>
+        {
+          logger.LogInformation($"Retry count: {retryAttempt}");
+          var timeToRetry = TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
+          return timeToRetry;
+        });
+
+    var products = await policy.ExecuteAsync(()
+      => _catalogoApiService.GetProductsAsync(cancellationToken));
+
+    return products;
   }
 }

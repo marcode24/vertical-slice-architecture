@@ -6,9 +6,15 @@ public sealed class CatalogoApiService(HttpClient httpClient)
 {
   private readonly HttpClient _httpClient = httpClient;
 
+  private readonly Random random = new Random();
+
   public async Task<IEnumerable<Catalogo>> GetProductsAsync(
     CancellationToken cancellationToken)
   {
+
+    if (random.NextDouble() < 0.9)
+      throw new ApplicationException("Error fetching products");
+
     var content = await _httpClient.GetFromJsonAsync<IEnumerable<Catalogo>>(
       "/api/products",
       cancellationToken
