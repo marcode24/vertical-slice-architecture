@@ -15,9 +15,24 @@ public sealed class CatalogoApiClient(
   private readonly ILoggerFactory _loggerFactory = loggerFactory;
   private readonly ResiliencePipelineProvider<string> _pipelineProvider = pipelineProvider;
 
-  public Task<Catalogo> GetProductByCodeAsync(string code, CancellationToken cancellationToken)
+  public async Task<Catalogo?> GetProductByCodeAsync(string code, CancellationToken cancellationToken)
   {
-    throw new NotImplementedException();
+    var logger = _loggerFactory.CreateLogger("RetryLog");
+
+    var policy = Policy.Handle<ApplicationException>()
+      .WaitAndRetryAsync(
+        3,
+        retryAttempt =>
+        {
+          logger.LogInformation($"Retry count: {retryAttempt}");
+          var timeToRetry = TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
+          return timeToRetry;
+        });
+
+    var product = await policy.ExecuteAsync(()
+      => _catalogoApiService.GetProductByCode(code, cancellationToken));
+
+    return product;
   }
 
   public async Task<IEnumerable<Catalogo>> GetProductsAsync(CancellationToken cancellationToken)

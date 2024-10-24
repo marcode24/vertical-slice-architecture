@@ -22,4 +22,21 @@ public sealed class CatalogoApiService(HttpClient httpClient)
 
     return content ?? Enumerable.Empty<Catalogo>();
   }
+
+  public async Task<Catalogo?> GetProductByCode(
+    string code,
+    CancellationToken cancellationToken
+  )
+  {
+
+    if (random.NextDouble() < 0.8)
+      throw new ApplicationException("Error fetching product");
+
+    var content = await _httpClient.GetFromJsonAsync<Catalogo>(
+      $"api/products/code/{code}",
+      cancellationToken
+    );
+
+    return content;
+  }
 }

@@ -47,5 +47,6 @@ if (app.Environment.IsDevelopment())
 }
 
 GetCatalogo.AddEndpoint(app);
+SearchProduct.AddEndpoint(app);
 
 app.Run();
